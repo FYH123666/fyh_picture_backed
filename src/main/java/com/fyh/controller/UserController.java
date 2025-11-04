@@ -27,7 +27,6 @@ public class UserController {
 
     @PostMapping("/register")
     @ApiOperation("用户注册")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest)
     {
         ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
