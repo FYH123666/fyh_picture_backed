@@ -107,6 +107,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
 
+
+
     public String getEncryptPassword(String userPassword) {
         // 盐值，混淆密码
         final String SALT = "fyh";
@@ -135,6 +137,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return currentUser;
     }
 
+
+
+    /**
+     * 用户注销
+     * @param request
+     * @return
+     */
+    public boolean userLogout(HttpServletRequest request) {
+        //判断是否登录
+        Object Obj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user=(User) Obj;
+        if(user==null)
+        {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        //移除登录态
+        request.removeAttribute(USER_LOGIN_STATE);
+        return true;
+    }
 
 }
 
