@@ -4,16 +4,17 @@ import com.fyh.common.BaseResponse;
 import com.fyh.common.ResultUtils;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
+import com.fyh.model.User;
+import com.fyh.model.dto.user.UserLoginRequest;
 import com.fyh.model.dto.user.UserRegisterRequest;
+import com.fyh.model.vo.LoginUserVO;
 import com.fyh.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 @Api(tags = "用户接口")
 @RestController
@@ -31,8 +32,26 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        Long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
     }
+
+    @PostMapping("/login")
+    @ApiOperation("用户登录")
+    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request)
+    {
+        ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
+        String userAccount= userLoginRequest.getUserAccount();
+        String userPassword = userLoginRequest.getUserPassword();
+        LoginUserVO result=userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(result);
+    }
+    @GetMapping("/get/login")
+    @ApiOperation("获取当前登录用户")
+    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
+        User user = userService.getLoginUser(request);
+        return ResultUtils.success(userService.getLoginUserVO(user));
+    }
+
 
 }

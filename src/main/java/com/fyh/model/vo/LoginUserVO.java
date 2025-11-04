@@ -1,25 +1,16 @@
-package com.fyh.model;
+package com.fyh.model.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
-
-/**
- * 用户
- * @TableName user
- */
-@TableName(value ="user")
 @Data
-public class User {
-    /**
-     * id
-     */
+public class LoginUserVO implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -27,10 +18,6 @@ public class User {
      */
     private String userAccount;
 
-    /**
-     * 密码
-     */
-    private String userPassword;
 
     /**
      * 用户昵称
@@ -67,9 +54,5 @@ public class User {
      */
     private Date updateTime;
 
-    /**
-     * 是否删除
-     */
-    @TableLogic
-    private Integer isDelete;
+
 }
