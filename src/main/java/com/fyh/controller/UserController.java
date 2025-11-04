@@ -1,7 +1,9 @@
 package com.fyh.controller;
 
+import com.fyh.annotation.AuthCheck;
 import com.fyh.common.BaseResponse;
 import com.fyh.common.ResultUtils;
+import com.fyh.constant.UserConstant;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
 import com.fyh.model.User;
@@ -12,7 +14,6 @@ import com.fyh.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,6 +27,7 @@ public class UserController {
 
     @PostMapping("/register")
     @ApiOperation("用户注册")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest)
     {
         ThrowUtils.throwIf(userRegisterRequest == null, ErrorCode.PARAMS_ERROR);
@@ -38,6 +40,8 @@ public class UserController {
 
     @PostMapping("/login")
     @ApiOperation("用户登录")
+
+
     public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request)
     {
         ThrowUtils.throwIf(userLoginRequest == null, ErrorCode.PARAMS_ERROR);
