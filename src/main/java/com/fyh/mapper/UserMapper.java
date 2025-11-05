@@ -1,6 +1,6 @@
 package com.fyh.mapper;
 
-import com.fyh.model.User;
+import com.fyh.model.entity.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

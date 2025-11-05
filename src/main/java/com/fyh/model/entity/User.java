@@ -1,4 +1,4 @@
-package com.fyh.model;
+package com.fyh.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

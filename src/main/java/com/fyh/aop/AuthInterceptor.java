@@ -3,7 +3,7 @@ package com.fyh.aop;
 import com.fyh.annotation.AuthCheck;
 import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
-import com.fyh.model.User;
+import com.fyh.model.entity.User;
 import com.fyh.model.enums.UserRoleEnum;
 import com.fyh.service.UserService;
 import org.aspectj.lang.ProceedingJoinPoint;

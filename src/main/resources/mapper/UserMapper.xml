@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.fyh.mapper.UserMapper">
 
-    <resultMap id="BaseResultMap" type="com.fyh.model.User">
+    <resultMap id="BaseResultMap" type="com.fyh.model.entity.User">
             <id property="id" column="id" />
             <result property="userAccount" column="userAccount" />
             <result property="userPassword" column="userPassword" />

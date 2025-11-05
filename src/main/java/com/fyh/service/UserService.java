@@ -1,10 +1,14 @@
 package com.fyh.service;
 
-import com.fyh.model.User;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fyh.model.dto.user.UserQueryRequest;
+import com.fyh.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fyh.model.vo.LoginUserVO;
+import com.fyh.model.vo.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
 * @author 16193
@@ -64,4 +68,29 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean userLogout(HttpServletRequest request);
+
+    /**
+     * 获取脱敏的单个用户信息
+     *
+     * @param user
+     * @return
+     */
+    UserVO getUserVO(User user);
+
+
+    /**
+     * 获取脱敏的用户列表
+     *
+     * @param userList
+     * @return
+     */
+    List<UserVO> getUserVOList(List<User> userList);
+
+    /**
+     * 获取查询条件
+     *
+     * @param userQueryRequest
+     * @return
+     */
+    QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 }
