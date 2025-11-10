@@ -19,7 +19,7 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-<!--       mybatis-plus操作数据库 https://baomidou.com/-->
+        <!--       mybatis-plus操作数据库 https://baomidou.com/-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
@@ -50,7 +50,7 @@
             <scope>test</scope>
         </dependency>
 
-<!--       hutool工具库 https://doc.hutool.cn/pages/index/#%F0%9F%8D%8Amaven-->
+        <!--       hutool工具库 https://doc.hutool.cn/pages/index/#%F0%9F%8D%8Amaven-->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
@@ -58,19 +58,26 @@
         </dependency>
 
 
-<!--        SWagger接口文档 https://doc.xiaominfo.com/docs/quick-start#spring-boot-2-->
+        <!--        SWagger接口文档 https://doc.xiaominfo.com/docs/quick-start#spring-boot-2-->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
             <version>4.4.0</version>
         </dependency>
 
-<!--Aop切面编程-->
+        <!--Aop切面编程-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <!-- 腾讯云 cos 服务 -->
+        <!-- https://mvnrepository.com/artifact/com.qcloud/cos_api -->
+        <dependency>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+            <version>5.6.227</version>
+        </dependency>
 
     </dependencies>
     <dependencyManagement>
@@ -83,7 +90,7 @@
                 <scope>import</scope>
             </dependency>
 
-<!--            引入mybatis-plus bom依赖管理-->
+            <!--            引入mybatis-plus bom依赖管理-->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-bom</artifactId>
@@ -91,6 +98,8 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 

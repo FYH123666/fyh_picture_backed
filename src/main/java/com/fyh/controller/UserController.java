@@ -1,6 +1,4 @@
 package com.fyh.controller;
-
-import ch.qos.logback.core.joran.util.beans.BeanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fyh.annotation.AuthCheck;
 import com.fyh.common.BaseResponse;
@@ -9,19 +7,28 @@ import com.fyh.constant.UserConstant;
 import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
+
 import com.fyh.model.dto.user.*;
 import com.fyh.model.entity.User;
 import com.fyh.model.vo.LoginUserVO;
 import com.fyh.model.vo.UserVO;
 import com.fyh.service.UserService;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.List;
 
+
+
+@Slf4j
 @Api(tags = "用户接口")
 @RestController
 @RequestMapping("/user")
@@ -172,4 +179,8 @@ public class UserController {
         userVOPage.setRecords(userVOList);
         return ResultUtils.success(userVOPage);
     }
+
+
+
+
 }
