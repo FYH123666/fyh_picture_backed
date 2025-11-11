@@ -48,6 +48,7 @@ public class PictureController {
 
     @PostMapping("/upload")
     @ApiOperation("上传图片")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile,
                                                  PictureUploadRequest pictureUploadRequest,
                                                  HttpServletRequest request)
