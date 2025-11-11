@@ -47,7 +47,7 @@ public class PictureController {
 
 
     @PostMapping("/upload")
-    @ApiOperation("上传图片")
+    @ApiOperation("上传图片(管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile,
                                                  PictureUploadRequest pictureUploadRequest,
@@ -86,7 +86,7 @@ public class PictureController {
      * 更新图片(管理员)
      */
     @PostMapping("update")
-    @ApiOperation("更新图片")
+    @ApiOperation("更新图片(管理员）")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request)
     {
@@ -119,7 +119,7 @@ public class PictureController {
      * 根据id获取图片(仅管理员)
      */
     @GetMapping("get")
-    @ApiOperation("根据id获取图片")
+    @ApiOperation("根据id获取图片（仅管理员）")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Picture> getPictureById(long id, HttpServletRequest request)
     {

@@ -132,10 +132,10 @@ public class UserController {
     /**
      * 删除用户
      */
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     @ApiOperation("删除用户")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> deleteUser(@RequestParam DeleteRequest deleteRequest)
+    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest)
     {
         if(deleteRequest == null || deleteRequest.getId() <= 0)
         {

@@ -216,7 +216,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String sortOrder=userQueryRequest.getSortOrder();
 
         QueryWrapper<User> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq(ObjUtil.isNull(id), "id", id);
+        queryWrapper.eq(ObjUtil.isNotNull(id), "id", id);
         queryWrapper.eq(StrUtil.isNotBlank(userRole), "userRole", userRole);
         queryWrapper.like(StrUtil.isNotBlank(userName), "userName", userName);
         queryWrapper.like(StrUtil.isNotBlank(userAccount), "userAccount", userAccount);
