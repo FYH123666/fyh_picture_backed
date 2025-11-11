@@ -3,6 +3,8 @@ package com.fyh.model.entity;
 import com.baomidou.mybatisplus.annotation.*;
 
 import java.util.Date;
+
+import com.fyh.model.vo.UserVO;
 import lombok.Data;
 
 /**
@@ -96,4 +98,6 @@ public class Picture {
 
     @TableField(exist = false)//排除非数据库字段
     private static final long serialVersionUID = 1L;
+
+
 }
