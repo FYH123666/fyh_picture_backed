@@ -6,19 +6,23 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
 import com.fyh.manager.FileManager;
 import com.fyh.model.dto.file.UploadPictureResult;
 import com.fyh.model.dto.picture.PictureQueryRequest;
+import com.fyh.model.dto.picture.PictureReviewRequest;
 import com.fyh.model.dto.picture.PictureUploadRequest;
 import com.fyh.model.entity.Picture;
 import com.fyh.model.entity.User;
+import com.fyh.model.enums.PictureReviewStatusEnum;
 import com.fyh.model.vo.PictureVO;
 import com.fyh.model.vo.UserVO;
 import com.fyh.service.PictureService;
 import com.fyh.mapper.PictureMapper;
 import com.fyh.service.UserService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,9 +42,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private final FileManager fileManager;
     private final UserService userService;
 
+
     public PictureServiceImpl(FileManager fileManager, UserService userService) {
         this.fileManager = fileManager;
         this.userService = userService;
+
     }
 
     @Override
@@ -55,10 +61,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         //如果是更新图片，需要判断图片是否存在
         if(pictureId!=null)
         {
-            boolean exist=this.lambdaQuery()
-                    .eq(Picture::getId,pictureId)
-                    .exists();
-            ThrowUtils.throwIf(!exist,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
+
+            Picture oldPicture=this.getById(pictureId);
+            ThrowUtils.throwIf(oldPicture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
+            //仅本人或管理员才允许更新
+            if(!loginUser.getId().equals(oldPicture.getUserId()) && !userService.isAdmin(loginUser))
+            {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
         }
         //上传图片，得到信息
         //根据用户Id划分目录
@@ -230,6 +240,38 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     }
 
 
+    /**
+     * 图片审核
+     * @param pictureReviewRequest
+     * @param loginUser
+     */
+    public void doPictureReview(PictureReviewRequest pictureReviewRequest ,User loginUser)
+    {
+        Long id = pictureReviewRequest.getId();
+        Integer reviewStatus = pictureReviewRequest.getReviewStatus();
+        PictureReviewStatusEnum pictureReviewStatusEnum = PictureReviewStatusEnum.getEnumByValue(reviewStatus);
+        if(id==null||pictureReviewStatusEnum==null||PictureReviewStatusEnum.REVIEWING.equals(pictureReviewStatusEnum))
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //判断图片是否存在
+        Picture oldPicture = this.getById(id);
+        ThrowUtils.throwIf(oldPicture==null,ErrorCode.NOT_FOUND_ERROR);
+        //已经是该状态
+        if (oldPicture.getReviewStatus().equals(reviewStatus))
+        {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"图片已审核,无需重复操作");
+        }
+        //执行审核操作
+        Picture updatePicture = new Picture();
+        BeanUtils.copyProperties(pictureReviewRequest,updatePicture);
+        updatePicture.setReviewTime(new Date());
+        updatePicture.setReviewerId(loginUser.getId());
+        boolean result = this.updateById(updatePicture);
+        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
+
+
+    }
 }
 
 

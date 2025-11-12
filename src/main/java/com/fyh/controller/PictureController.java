@@ -10,10 +10,7 @@ import com.fyh.constant.UserConstant;
 import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
-import com.fyh.model.dto.picture.PictureEditRequest;
-import com.fyh.model.dto.picture.PictureQueryRequest;
-import com.fyh.model.dto.picture.PictureUpdateRequest;
-import com.fyh.model.dto.picture.PictureUploadRequest;
+import com.fyh.model.dto.picture.*;
 import com.fyh.model.entity.Picture;
 import com.fyh.model.entity.User;
 import com.fyh.model.vo.PictureTagCategory;
@@ -48,7 +45,7 @@ public class PictureController {
 
     @PostMapping("/upload")
     @ApiOperation("上传图片(管理员)")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+//    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile,
                                                  PictureUploadRequest pictureUploadRequest,
                                                  HttpServletRequest request)
@@ -237,5 +234,22 @@ public class PictureController {
         pictureTagCategory.setCategoryList(categoryList);
         return ResultUtils.success(pictureTagCategory);
     }
+
+    @PostMapping("review")
+    @ApiOperation("图片审核(管理员) ")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> reviewPictre(@RequestBody PictureReviewRequest pictureReviewRequest,
+                                              HttpServletRequest request)
+    {
+        if (pictureReviewRequest == null)
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        User loginUser = userService.getLoginUser(request);
+        pictureService.doPictureReview(pictureReviewRequest,loginUser);
+        return ResultUtils.success(true);
+    }
+
 
 }

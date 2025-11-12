@@ -3,6 +3,7 @@ package com.fyh.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fyh.model.dto.picture.PictureQueryRequest;
+import com.fyh.model.dto.picture.PictureReviewRequest;
 import com.fyh.model.dto.picture.PictureUploadRequest;
 import com.fyh.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -63,4 +64,13 @@ public interface PictureService extends IService<Picture> {
      * @param picture
      */
     void ValidPicture(Picture picture);
+
+
+    /**
+     * 图片审核
+     *
+     * @param pictureReviewRequest
+     * @param loginUser
+     */
+    void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
 }
