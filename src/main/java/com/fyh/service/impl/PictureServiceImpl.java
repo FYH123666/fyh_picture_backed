@@ -86,6 +86,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setPicScale(uploadPictureResult.getPicScale());
         picture.setPicFormat(uploadPictureResult.getPicFormat());
         picture.setUserId(loginUser.getId());
+        //补充审查参数
+        this.fileReviewParams(picture,loginUser);
+
         //如果pictureId不为空，则更新图片，否则是新增
         if(pictureId!=null)
         {
@@ -142,6 +145,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(picWidth),"picWidth",picWidth);
         queryWrapper.eq(ObjUtil.isNotEmpty(picHeight),"picHeight",picHeight);
         queryWrapper.eq(ObjUtil.isNotEmpty(picScale),"picScale",picScale);
+
+        Integer reviewStatus = pictureQueryRequest.getReviewStatus();
+        String reviewMessage = pictureQueryRequest.getReviewMessage();
+        Long reviewerId = pictureQueryRequest.getReviewerId();
+        queryWrapper.eq(ObjUtil.isNotEmpty(reviewStatus), "reviewStatus", reviewStatus);
+        queryWrapper.like(StrUtil.isNotBlank(reviewMessage), "reviewMessage", reviewMessage);
+        queryWrapper.eq(ObjUtil.isNotEmpty(reviewerId), "reviewerId", reviewerId);
+
         //标签是JSON数组，特殊处理
         if(CollUtil.isNotEmpty(tags))
         {
@@ -271,6 +282,30 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
 
 
+    }
+
+    /**
+     * 文件审核参数
+     * @param picture
+     * @param loginUser
+     */
+    public void fileReviewParams(Picture  picture,User loginUser)
+    {
+        ThrowUtils.throwIf(picture==null,ErrorCode.PARAMS_ERROR);
+        if(userService.isAdmin(loginUser))
+        {
+            //管理员自动 通过
+            picture.setReviewerId(loginUser.getId());
+            picture.setReviewTime(new Date());
+            picture.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+            picture.setReviewMessage("管理员自动通过");
+
+        }
+        else {
+            //普通用户 创建和编辑-->待审核
+            picture.setReviewStatus(PictureReviewStatusEnum.REVIEWING.getValue());
+
+        }
     }
 }
 

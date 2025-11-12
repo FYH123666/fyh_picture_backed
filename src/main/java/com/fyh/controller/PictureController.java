@@ -13,6 +13,7 @@ import com.fyh.exception.ThrowUtils;
 import com.fyh.model.dto.picture.*;
 import com.fyh.model.entity.Picture;
 import com.fyh.model.entity.User;
+import com.fyh.model.enums.PictureReviewStatusEnum;
 import com.fyh.model.vo.PictureTagCategory;
 import com.fyh.model.vo.PictureVO;
 import com.fyh.service.PictureService;
@@ -44,13 +45,14 @@ public class PictureController {
 
 
     @PostMapping("/upload")
-    @ApiOperation("上传图片(管理员)")
+    @ApiOperation("上传图片")
 //    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile,
                                                  PictureUploadRequest pictureUploadRequest,
                                                  HttpServletRequest request)
     {
         User loginUser = userService.getLoginUser(request);
+
         PictureVO pictureVO = pictureService.uploadPicture(multipartFile, pictureUploadRequest, loginUser);
         return ResultUtils.success(pictureVO);
     }
@@ -91,6 +93,7 @@ public class PictureController {
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+
         //将实体类和DTO转化
         Picture picture = new Picture();
         BeanUtils.copyProperties(pictureUpdateRequest,picture);
@@ -106,6 +109,9 @@ public class PictureController {
         long id = pictureUpdateRequest.getId();
         Picture oldPicture=pictureService.getById(id);
         ThrowUtils.throwIf(oldPicture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
+
+        //补充审核参数
+        pictureService.fileReviewParams(picture,userService.getLoginUser( request));
         //操作数据库
         boolean result = pictureService.updateById(picture);
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
@@ -179,6 +185,10 @@ public class PictureController {
         }
         int current = pictureQueryRequest.getCurrent();
         int pageSize = pictureQueryRequest.getPageSize();
+        //普通用户只能查看审核通过的图片
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+
+        //操作数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize),
                 pictureService.getQueryWrapper(pictureQueryRequest));
         return ResultUtils.success(pictureService.getPictureVOPage(picturePage, request));
@@ -205,7 +215,6 @@ public class PictureController {
         pictureService.ValidPicture(picture);
         User loginUser = userService.getLoginUser(request);
         //判断是否存在
-
         long id = pictureEditRequest.getId();
         Picture oldPicture = pictureService.getById(id);
         ThrowUtils.throwIf(oldPicture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
@@ -214,6 +223,9 @@ public class PictureController {
         {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
+
+        //补充审核参数
+        pictureService.fileReviewParams(picture,loginUser);
 
 
         //操作数据库
