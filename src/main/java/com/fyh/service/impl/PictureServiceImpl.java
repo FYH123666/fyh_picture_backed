@@ -10,6 +10,7 @@ import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
 import com.fyh.manager.FileManager;
+import com.fyh.manager.PictureUploadTemplate;
 import com.fyh.model.dto.file.UploadPictureResult;
 import com.fyh.model.dto.picture.PictureQueryRequest;
 import com.fyh.model.dto.picture.PictureReviewRequest;
@@ -19,13 +20,16 @@ import com.fyh.model.entity.User;
 import com.fyh.model.enums.PictureReviewStatusEnum;
 import com.fyh.model.vo.PictureVO;
 import com.fyh.model.vo.UserVO;
+import com.fyh.service.FilePictureUpload;
 import com.fyh.service.PictureService;
 import com.fyh.mapper.PictureMapper;
+import com.fyh.service.UrlPictureUpload;
 import com.fyh.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,18 +43,19 @@ import java.util.stream.Collectors;
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     implements PictureService{
 
-    private final FileManager fileManager;
-    private final UserService userService;
 
 
-    public PictureServiceImpl(FileManager fileManager, UserService userService) {
-        this.fileManager = fileManager;
-        this.userService = userService;
+    @Resource
+    private UserService userService;
 
-    }
+    @Resource
+    private FilePictureUpload filePictureUpload;
+
+    @Resource
+    private UrlPictureUpload urlPictureUpload;
 
     @Override
-    public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
+    public PictureVO uploadPicture(Object inputSource, PictureUploadRequest pictureUploadRequest, User loginUser) {
         ThrowUtils.throwIf(loginUser==null, ErrorCode.NO_AUTH_ERROR);
         //用于判断是新增还是更新图片
         Long pictureId = null;
@@ -74,7 +79,15 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         //根据用户Id划分目录
 
         String uploadPathPrefix = String.format("public/%d", loginUser.getId());
-        UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
+
+
+        //根据参数类型选择上传图片方式
+        PictureUploadTemplate pictureUploadTemplate=filePictureUpload;
+        if(inputSource instanceof String)
+        {
+            pictureUploadTemplate= urlPictureUpload;
+        }
+        UploadPictureResult uploadPictureResult = pictureUploadTemplate.uploadPicture(inputSource, uploadPathPrefix);
 
         //构造要入库的图片信息
         Picture picture = new Picture();
