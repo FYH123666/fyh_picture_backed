@@ -1,5 +1,7 @@
 package com.fyh.controller;
 
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fyh.annotation.AuthCheck;
@@ -22,6 +24,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.util.DigestUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +37,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @RequestMapping("/picture")
 @RestController
@@ -42,6 +51,8 @@ public class PictureController {
 
     @Resource
     private UserService userService;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @PostMapping("/upload")
@@ -288,6 +299,47 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         Integer result = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
         return ResultUtils.success(result);
+    }
+    @PostMapping("/list/page/vo/cache")
+    @ApiOperation("分页获取图片列表（用户）(分布式缓存）")
+    public BaseResponse<Page<PictureVO>> listPictureVOByPageWithCache(@RequestBody PictureQueryRequest pictureQueryRequest,
+                                                             HttpServletRequest request)
+    {
+        int current = pictureQueryRequest.getCurrent();
+        int size=pictureQueryRequest.getPageSize();
+        //限制爬虫
+        ThrowUtils.throwIf(size>20,ErrorCode.PARAMS_ERROR);
+
+        //普通用户只能查看审核通过的图片
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        //构建缓存key
+        String queryCondition=JSONUtil.toJsonStr(pictureQueryRequest);
+        String hashKey= DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String redisKey=String.format(("fyhpicture:listPictureVOByPage:"+hashKey));
+        //从redis缓存中查询
+        ValueOperations<String,String> valueOps=stringRedisTemplate.opsForValue();
+        String cachedValue=valueOps.get(redisKey);
+        if(cachedValue!=null)
+        {
+            //缓存命中
+            Page<PictureVO> cachedPage=JSONUtil.toBean(cachedValue,Page.class);
+            return ResultUtils.success(cachedPage);
+        }
+        Page<Picture> picturePage=pictureService.page(new Page<>(current,size),
+                pictureService.getQueryWrapper(pictureQueryRequest));
+
+        //获取封装类
+        Page<PictureVO> pictureVOPage=pictureService.getPictureVOPage(picturePage,request);
+
+        //写入缓存Redis
+        String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
+        //缓存时间
+        int cacheExpireTime=300+ RandomUtil.randomInt(0,300);
+        valueOps.set(redisKey,cacheValue, cacheExpireTime, TimeUnit.SECONDS);
+
+        //返回结果
+        return ResultUtils.success(pictureVOPage);
+
     }
 
 }
