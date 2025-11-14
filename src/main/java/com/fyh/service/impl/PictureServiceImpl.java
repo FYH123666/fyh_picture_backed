@@ -103,7 +103,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setUrl(uploadPictureResult.getUrl());
 
         String picName=uploadPictureResult.getPicName();
-        if(pictureUploadRequest!=null &&StrUtil.isNotBlank(picName))
+        if(pictureUploadRequest!=null &&StrUtil.isNotBlank(pictureUploadRequest.getPicName()))
         {
             picName=pictureUploadRequest.getPicName();
         }

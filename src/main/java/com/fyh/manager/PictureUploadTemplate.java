@@ -1,5 +1,6 @@
 package com.fyh.manager;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -10,12 +11,15 @@ import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
 import com.fyh.model.dto.file.UploadPictureResult;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
+import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 public abstract class PictureUploadTemplate {
@@ -47,9 +51,16 @@ public abstract class PictureUploadTemplate {
             // 上传图片
             PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
+            ProcessResults processResults=putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> ciObjectList = processResults.getObjectList();
+            if(CollUtil.isNotEmpty(ciObjectList))
+            {
+                CIObject compressedCIObject = ciObjectList.get(0);
+                // 封装返回结果
+                return buildResult(originFilename,compressedCIObject);
+            }
 
-
-            // 封装返回结果
+            // 封装返回原图结果
             return buildResult(originFilename , file, uploadPath,imageInfo);
 
 
@@ -83,6 +94,34 @@ public abstract class PictureUploadTemplate {
      * @param file
      */
     protected abstract void processFile(Object inputSource, File file) throws Exception;
+
+
+
+
+
+
+    /**
+     * 构建返回结果
+     *
+     * @param originFilename
+     * @param compressedCIObject
+     * @return
+     */
+    private UploadPictureResult buildResult(String originFilename, CIObject compressedCIObject) {
+        UploadPictureResult uploadPictureResult = new UploadPictureResult();
+        int picWidth = compressedCIObject.getWidth();
+        int picHeight = compressedCIObject.getHeight();
+        double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();
+        uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
+        uploadPictureResult.setPicWidth(picWidth);
+        uploadPictureResult.setPicHeight(picHeight);
+        uploadPictureResult.setPicScale(picScale);
+        uploadPictureResult.setPicFormat(compressedCIObject.getFormat());
+        uploadPictureResult.setPicSize( compressedCIObject.getSize().longValue());
+        //设置图片压缩后的地址
+        uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + compressedCIObject.getKey());
+        return uploadPictureResult;
+    }
 
     /**
      * 构建返回结果
