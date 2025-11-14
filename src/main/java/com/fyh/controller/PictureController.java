@@ -341,7 +341,8 @@ public class PictureController {
         cachedValue=valueOps.get(cacheKey);
         if(cachedValue!=null)
         {
-            //缓存命中
+            //缓存命中，存入本地缓存并返回
+            LOCAL_CACHE.put(cacheKey,cachedValue);
             Page<PictureVO> cachedPage=JSONUtil.toBean(cachedValue,Page.class);
             return ResultUtils.success(cachedPage);
         }
