@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
+import com.fyh.manager.CosManager;
 import com.fyh.manager.FileManager;
 import com.fyh.manager.PictureUploadTemplate;
 import com.fyh.model.dto.file.UploadPictureResult;
@@ -32,6 +33,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,6 +42,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.annotation.Documented;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,6 +67,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private UrlPictureUpload urlPictureUpload;
+    @Autowired
+    private CosManager cosManager;
 
     @Override
     public PictureVO uploadPicture(Object inputSource, PictureUploadRequest pictureUploadRequest, User loginUser) {
@@ -73,10 +80,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             pictureId = pictureUploadRequest.getId();
         }
         //如果是更新图片，需要判断图片是否存在
+        Picture oldPicture=null;
         if(pictureId!=null)
         {
 
-            Picture oldPicture=this.getById(pictureId);
+            oldPicture=this.getById(pictureId);
             ThrowUtils.throwIf(oldPicture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
             //仅本人或管理员才允许更新
             if(!loginUser.getId().equals(oldPicture.getUserId()) && !userService.isAdmin(loginUser))
@@ -126,9 +134,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
 
         boolean result = this.saveOrUpdate(picture);
-        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR,"图片上传失败");
-        return PictureVO.objToVo(picture);
 
+        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR,"图片上传失败");
+        //如果是更新图片删除旧照片资源
+        if(pictureId!=null)
+        {
+            this.clearPictureFile(oldPicture);
+        }
+        return PictureVO.objToVo(picture);
     }
 
     /**
@@ -409,6 +422,44 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         return uploadCount;
     }
+
+    @Async
+    @Override
+    public void clearPictureFile(Picture oldpicture) {
+        //判断该图片是否被多条记录调用
+        String pictureUrl = oldpicture.getUrl();
+        long count = this.lambdaQuery()
+                .eq(Picture::getUrl,pictureUrl)
+                .count();
+        if(count>1)
+        {
+            //多条记录调用不删除
+            return;
+        }
+        try {
+            // 提取路径部分
+            String picturePath = new URL(pictureUrl).getPath();
+
+
+            //删除图片文件
+            cosManager.deleteObject(picturePath);
+            System.out.println("删除图片文件成功:" + pictureUrl);
+            //删除缩略图
+            String thumbnailUrl = oldpicture.getThumbnailUrl();
+            if (StrUtil.isNotBlank(thumbnailUrl)) {
+                cosManager.deleteObject(thumbnailUrl);
+                System.out.println("删除缩略图成功:" + thumbnailUrl);
+
+            }
+        }
+        catch (MalformedURLException e)
+        {
+            log.error("处理图片删除时遇到格式错误的 URL。图片 URL: {}", pictureUrl, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"格式错误的 URL");
+        }
+
+    }
+
 }
 
 
