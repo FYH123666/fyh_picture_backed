@@ -356,6 +356,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
      * @param loginUser
      * @return
      */
+    @Override
     public Integer uploadPictureByBatch(
             PictureUploadByBatchRequest pictureUploadByBatchRequest,
             User loginUser)

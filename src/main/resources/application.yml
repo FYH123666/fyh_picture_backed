@@ -3,22 +3,32 @@ server:
   port: 8123
   servlet:
     context-path: /api
+    #cookie 30天过期
+    session:
+      cookie:
+        max-age: 2592000
 spring:
   profiles:
     active: local
   application:
     name: Fyh_picture_backed
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/fyh_pictures
     username: root
     password: 123456
-  redis:
 
+  redis:
     database: 2
     host: 127.0.0.1
     port: 6379
     timeout: 5000
+
+  session:
+    store-type: redis
+    #session 30天过期
+    timeout: 259200
 
   servlet:
     multipart:
