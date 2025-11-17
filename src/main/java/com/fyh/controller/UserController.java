@@ -46,7 +46,7 @@ public class UserController {
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         long result = userService.userRegister(userAccount, userPassword, checkPassword);
-        return ResultUtils.success(result);
+        return ResultUtils.success(result, "后台已提交,任务执行中！");
     }
 
     @PostMapping("/login")
@@ -59,13 +59,13 @@ public class UserController {
         String userAccount= userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
         LoginUserVO result=userService.userLogin(userAccount, userPassword, request);
-        return ResultUtils.success(result);
+        return ResultUtils.success(result, "后台已提交,任务执行中！");
     }
     @GetMapping("/get/login")
     @ApiOperation("获取当前登录用户")
     public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
         User user = userService.getLoginUser(request);
-        return ResultUtils.success(userService.getLoginUserVO(user));
+        return ResultUtils.success(userService.getLoginUserVO(user), "后台已提交,任务执行中！");
     }
 
     /**
@@ -79,7 +79,7 @@ public class UserController {
     {
         ThrowUtils.throwIf(request==null,ErrorCode.OPERATION_ERROR);
         boolean result=userService.userLogout(request);
-        return ResultUtils.success(result);
+        return ResultUtils.success(result, "后台已提交,任务执行中！");
     }
 
     /**
@@ -99,7 +99,7 @@ public class UserController {
 
         boolean result = userService.save(user);
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(user.getId());
+        return ResultUtils.success(user.getId(), "后台已提交,任务执行中！");
 
     }
 
@@ -114,7 +114,7 @@ public class UserController {
         ThrowUtils.throwIf(id<=0,ErrorCode.PARAMS_ERROR);
         User user=userService.getById(id);
         ThrowUtils.throwIf(user==null,ErrorCode.NOT_FOUND_ERROR);
-        return ResultUtils.success(user);
+        return ResultUtils.success(user, "后台已提交,任务执行中！");
     }
 
     /**
@@ -125,7 +125,7 @@ public class UserController {
     {
         BaseResponse<User> response = getUserById(id);
         User user=response.getData();
-        return ResultUtils.success(userService.getUserVO(user));
+        return ResultUtils.success(userService.getUserVO(user), "后台已提交,任务执行中！");
     }
 
 
@@ -142,7 +142,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean result = userService.removeById(deleteRequest.getId());
-        return ResultUtils.success(result);
+        return ResultUtils.success(result, "后台已提交,任务执行中！");
     }
 
     /**
@@ -158,7 +158,7 @@ public class UserController {
         BeanUtils.copyProperties(userUpdateRequest, user);
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
+        return ResultUtils.success(true, "后台已提交,任务执行中！");
     }
 
     /**
@@ -177,7 +177,7 @@ public class UserController {
         Page<UserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
         List<UserVO> userVOList = userService.getUserVOList(userPage.getRecords());
         userVOPage.setRecords(userVOList);
-        return ResultUtils.success(userVOPage);
+        return ResultUtils.success(userVOPage, "后台已提交,任务执行中！");
     }
 
 

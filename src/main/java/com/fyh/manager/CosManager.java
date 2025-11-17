@@ -11,6 +11,7 @@ import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 
 import com.qcloud.cos.model.ciModel.persistence.PicOperations;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -18,7 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Slf4j
 @Component
 public class CosManager {  
   
@@ -79,7 +80,14 @@ public class CosManager {
         //原图大于20kb
         if (file.length()>20*1024) {
             PicOperations.Rule thumbnailRule = new PicOperations.Rule();
-            String thumbnailKey = FileUtil.mainName(key) + "_thumbnail." + FileUtil.getSuffix(key);
+            //todo
+            log.info("putPictureObject key =====>>>> {}", key);
+            String suffix = FileUtil.getSuffix(key);
+            log.info("suffix======>>>:{}",suffix);
+
+            String thumbnailKey = FileUtil.mainName(key) + "_thumbnail." + suffix;
+            log.info("thumbnailKey to set = {}", thumbnailKey);
+
             thumbnailRule.setFileId(thumbnailKey);
             thumbnailRule.setBucket(cosClientConfig.getBucket());
             thumbnailRule.setRule(String.format("imageMogr2/thumbnail/%sx%s>", 128, 128));

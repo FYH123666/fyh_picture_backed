@@ -7,11 +7,12 @@ public class ResultUtils {
     /**
      * 成功
      *
-     * @param data 数据
      * @param <T>  数据类型
+     * @param data 数据
+     * @param s
      * @return 响应
      */
-    public static <T> BaseResponse<T> success(T data) {
+    public static <T> BaseResponse<T> success(T data, String s) {
         return new BaseResponse<>(0, data, "ok");
     }
 

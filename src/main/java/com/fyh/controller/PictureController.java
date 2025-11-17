@@ -1,7 +1,5 @@
 package com.fyh.controller;
 
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fyh.annotation.AuthCheck;
@@ -30,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.DigestUtils;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,7 +36,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @RequestMapping("/picture")
@@ -77,7 +73,7 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
 
         PictureVO pictureVO = pictureService.uploadPicture(multipartFile, pictureUploadRequest, loginUser);
-        return ResultUtils.success(pictureVO);
+        return ResultUtils.success(pictureVO, "后台已提交,任务执行中！");
     }
 
     @PostMapping("delete")
@@ -103,7 +99,7 @@ public class PictureController {
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
         //清理图片资源
         pictureService.clearPictureFile(picture);
-        return ResultUtils.success(true);
+        return ResultUtils.success(true, "后台已提交,任务执行中！");
     }
 
     /**
@@ -140,7 +136,7 @@ public class PictureController {
         //操作数据库
         boolean result = pictureService.updateById(picture);
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
+        return ResultUtils.success(true, "后台已提交,任务执行中！");
     }
 
     /**
@@ -158,7 +154,7 @@ public class PictureController {
         //操作数据库
         Picture picture = pictureService.getById(id);
         ThrowUtils.throwIf(picture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
-        return ResultUtils.success(picture);
+        return ResultUtils.success(picture, "后台已提交,任务执行中！");
     }
 
     @GetMapping("get/vo")
@@ -171,7 +167,7 @@ public class PictureController {
         }
         Picture picture = pictureService.getById(id);
         ThrowUtils.throwIf(picture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
-        return ResultUtils.success(PictureVO.objToVo(picture));
+        return ResultUtils.success(PictureVO.objToVo(picture), "后台已提交,任务执行中！");
 
     }
 
@@ -194,7 +190,7 @@ public class PictureController {
         //操作数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize),
                 pictureService.getQueryWrapper(pictureQueryRequest));
-        return ResultUtils.success(picturePage);
+        return ResultUtils.success(picturePage, "后台已提交,任务执行中！");
     }
     /**
      * 分页获取图片列表（用户）
@@ -216,7 +212,7 @@ public class PictureController {
         //操作数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize),
                 pictureService.getQueryWrapper(pictureQueryRequest));
-        return ResultUtils.success(pictureService.getPictureVOPage(picturePage, request));
+        return ResultUtils.success(pictureService.getPictureVOPage(picturePage, request), "后台已提交,任务执行中！");
     }
 
     //编辑图片（用户使用）
@@ -256,7 +252,7 @@ public class PictureController {
         //操作数据库
         boolean result = pictureService.updateById(picture);
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
+        return ResultUtils.success(true, "后台已提交,任务执行中！");
     }
 
     /**
@@ -269,7 +265,7 @@ public class PictureController {
         List<String> categoryList = Arrays.asList("模板", "电商", "表情包", "素材", "海报");
         pictureTagCategory.setTagList(tagList);
         pictureTagCategory.setCategoryList(categoryList);
-        return ResultUtils.success(pictureTagCategory);
+        return ResultUtils.success(pictureTagCategory, "后台已提交,任务执行中！");
     }
 
     @PostMapping("review")
@@ -285,7 +281,7 @@ public class PictureController {
 
         User loginUser = userService.getLoginUser(request);
         pictureService.doPictureReview(pictureReviewRequest,loginUser);
-        return ResultUtils.success(true);
+        return ResultUtils.success(true, "后台已提交,任务执行中！");
     }
 
 
@@ -300,20 +296,42 @@ public class PictureController {
         User loginUser = userService.getLoginUser(request);
         String fileUrl = pictureUploadRequest.getFileUrl();
         PictureVO pictureVO = pictureService.uploadPicture(fileUrl, pictureUploadRequest, loginUser);
-        return ResultUtils.success(pictureVO);
+        return ResultUtils.success(pictureVO, "后台已提交,任务执行中！");
     }
+    /**
+     * 批量上传图片(管理员）
+     */
+
+//    @PostMapping("/upload/batch")
+//    @ApiOperation("批量上传图片(管理员）")
+//    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+//    public BaseResponse<Integer> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest,
+//                                                      HttpServletRequest request)
+//    {
+//
+//        ThrowUtils.throwIf(pictureUploadByBatchRequest==null,ErrorCode.PARAMS_ERROR);
+//        User loginUser = userService.getLoginUser(request);
+//        Integer result = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+//        return ResultUtils.success(result);
+//    }
+
+
+
     @PostMapping("/upload/batch")
     @ApiOperation("批量上传图片(管理员）")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Integer> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest,
+    public BaseResponse<Boolean> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest,
                                                       HttpServletRequest request)
     {
 
         ThrowUtils.throwIf(pictureUploadByBatchRequest==null,ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
-        Integer result = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
-        return ResultUtils.success(result);
+        //调用异步方法
+        pictureService.asyncUploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+        return ResultUtils.success(true,"任务已提交,后台执行中");
     }
+
+
     @PostMapping("/list/page/vo/cache")
     @ApiOperation("分页获取图片列表（用户）(多级缓存）")
     public BaseResponse<Page<PictureVO>> listPictureVOByPageWithCache(@RequestBody PictureQueryRequest pictureQueryRequest,
@@ -336,7 +354,7 @@ public class PictureController {
         {
             //缓存命中
             Page<PictureVO> cachedPage=JSONUtil.toBean(cachedValue,Page.class);
-            return ResultUtils.success(cachedPage);
+            return ResultUtils.success(cachedPage, "后台已提交,任务执行中！");
         }
         //2.从redis缓存中查询
         ValueOperations<String,String> valueOps=stringRedisTemplate.opsForValue();
@@ -346,7 +364,7 @@ public class PictureController {
             //缓存命中，存入本地缓存并返回
             LOCAL_CACHE.put(cacheKey,cachedValue);
             Page<PictureVO> cachedPage=JSONUtil.toBean(cachedValue,Page.class);
-            return ResultUtils.success(cachedPage);
+            return ResultUtils.success(cachedPage, "后台已提交,任务执行中！");
         }
         //3.从数据库中查询
         Page<Picture> picturePage=pictureService.page(new Page<>(current,size),
@@ -364,7 +382,7 @@ public class PictureController {
         valueOps.set(cacheKey,cacheValue,  5, TimeUnit.MINUTES);
 
         //返回结果
-        return ResultUtils.success(pictureVOPage);
+        return ResultUtils.success(pictureVOPage, "后台已提交,任务执行中！");
 
     }
 

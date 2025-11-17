@@ -1,6 +1,7 @@
 package com.fyh.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -408,7 +409,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             PictureUploadRequest pictureUploadRequest = new PictureUploadRequest();
             try {
 
-               pictureUploadRequest.setPicName(namePrefix +(uploadCount+1));
+//               pictureUploadRequest.setPicName(namePrefix +(uploadCount+1));
+
+                pictureUploadRequest.setPicName(namePrefix +(uploadCount+1));
                 PictureVO pictureVO = this.uploadPicture(fileUrl, pictureUploadRequest, loginUser);
                 log.info("图片上传成功:{}", pictureVO);
                 uploadCount++;
@@ -422,6 +425,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             }
         }
         return uploadCount;
+    }
+
+    /**
+     * 异步批量上传图片
+     * @param request
+     * @param loginUser
+     */
+    @Override
+    public void asyncUploadPictureByBatch(PictureUploadByBatchRequest request, User loginUser) {
+        try {
+            // 调用原来的同步批量上传逻辑，但不返回前端
+            uploadPictureByBatch(request, loginUser);
+        } catch (Exception e) {
+            log.error("异步批量上传失败", e);
+        }
+
     }
 
     @Async

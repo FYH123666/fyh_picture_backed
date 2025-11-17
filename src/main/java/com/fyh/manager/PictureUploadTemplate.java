@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.fyh.config.CosClientConfig;
 import com.fyh.exception.BusinessException;
@@ -38,8 +39,17 @@ public abstract class PictureUploadTemplate {
 
         String uuid = RandomUtil.randomString(16);
         String originFilename = getOriginFilename(inputSource);
+
+
+        String suffix=FileUtil.getSuffix(originFilename);
+        if(StrUtil.isBlank(suffix))
+        {
+            suffix="jpg";
+        }
         String uploadFilename = String.format("%s_%s.%s", DateUtil.formatDate(new Date()), uuid,
-                FileUtil.getSuffix(originFilename));
+                suffix);
+        log.info("如果不存在原文件后缀是否已经设定默认jpg,{}", suffix);
+
         String uploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFilename);
         File file = null;
         try {
@@ -99,9 +109,6 @@ public abstract class PictureUploadTemplate {
      * @param file
      */
     protected abstract void processFile(Object inputSource, File file) throws Exception;
-
-
-
 
 
 

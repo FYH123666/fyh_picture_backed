@@ -64,7 +64,7 @@ public class FileController {
             multipartFile.transferTo(file);
             cosManager.putObject(filePath,file);
             //返回文件可访问地址
-            return ResultUtils.success(filePath);
+            return ResultUtils.success(filePath, "后台已提交,任务执行中！");
         } catch (Exception e) {
             log.error("文件上传失败", e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"文件上传失败");
@@ -124,7 +124,7 @@ public class FileController {
     {
         User loginUser = userService.getLoginUser(request);
         PictureVO pictureVO = pictureService.uploadPicture(multipartFile, pictureUploadRequest, loginUser);
-        return ResultUtils.success(pictureVO);
+        return ResultUtils.success(pictureVO, "后台已提交,任务执行中！");
 
     }
 

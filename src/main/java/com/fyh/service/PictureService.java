@@ -10,6 +10,7 @@ import com.fyh.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fyh.model.entity.User;
 import com.fyh.model.vo.PictureVO;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -95,6 +96,16 @@ public interface PictureService extends IService<Picture> {
             PictureUploadByBatchRequest pictureUploadByBatchRequest,
             User loginUser
     );
+
+    /**
+     * 异步批量上传图片
+     *
+     * @param request
+     * @param loginUser
+     */
+    @Async
+    public void asyncUploadPictureByBatch(PictureUploadByBatchRequest request, User loginUser);
+
 
     /**
      * 删除图片
