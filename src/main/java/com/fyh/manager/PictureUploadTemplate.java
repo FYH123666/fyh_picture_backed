@@ -56,8 +56,13 @@ public abstract class PictureUploadTemplate {
             if(CollUtil.isNotEmpty(ciObjectList))
             {
                 CIObject compressedCIObject = ciObjectList.get(0);
+                CIObject  thumbnailCIObject=compressedCIObject;
+                if(ciObjectList.size()>1) {
+                    //默认为原图，又生成缩略图，则取缩略图
+                    thumbnailCIObject = ciObjectList.get(1);
+                }
                 // 封装返回结果
-                return buildResult(originFilename,compressedCIObject);
+                return buildResult(originFilename,compressedCIObject,thumbnailCIObject);
             }
 
             // 封装返回原图结果
@@ -107,7 +112,7 @@ public abstract class PictureUploadTemplate {
      * @param compressedCIObject
      * @return
      */
-    private UploadPictureResult buildResult(String originFilename, CIObject compressedCIObject) {
+    private UploadPictureResult buildResult(String originFilename, CIObject compressedCIObject,CIObject thumbnailCIObject) {
         UploadPictureResult uploadPictureResult = new UploadPictureResult();
         int picWidth = compressedCIObject.getWidth();
         int picHeight = compressedCIObject.getHeight();
@@ -120,6 +125,7 @@ public abstract class PictureUploadTemplate {
         uploadPictureResult.setPicSize( compressedCIObject.getSize().longValue());
         //设置图片压缩后的地址
         uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + compressedCIObject.getKey());
+        uploadPictureResult.setThumbnailUrl(cosClientConfig.getHost() + "/" + thumbnailCIObject.getKey());
         return uploadPictureResult;
     }
 
