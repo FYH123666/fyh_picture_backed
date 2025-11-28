@@ -6,7 +6,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpUtil;
+
 import com.fyh.config.CosClientConfig;
 import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;

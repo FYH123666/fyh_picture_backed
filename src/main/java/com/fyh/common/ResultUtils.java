@@ -46,4 +46,8 @@ public class ResultUtils {
     public static BaseResponse<?> error(ErrorCode errorCode, String message) {
         return new BaseResponse<>(errorCode.getCode(), null, message);
     }
+
+    public static BaseResponse<Boolean> success(boolean b) {
+        return new BaseResponse<>(0, b, "ok");
+    }
 }
