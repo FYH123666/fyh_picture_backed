@@ -3,6 +3,8 @@ package com.fyh.controller;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fyh.annotation.AuthCheck;
+import com.fyh.api.imagesearch.ImageSearchApiFacade;
+import com.fyh.api.imagesearch.model.ImageSearchResult;
 import com.fyh.common.BaseResponse;
 import com.fyh.common.DeleteRequest;
 import com.fyh.common.ResultUtils;
@@ -11,6 +13,7 @@ import com.fyh.exception.BusinessException;
 import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
 import com.fyh.model.dto.picture.*;
+import com.fyh.model.dto.searchPicture.SearchPictureByPictureRequest;
 import com.fyh.model.entity.Picture;
 import com.fyh.model.entity.Space;
 import com.fyh.model.entity.User;
@@ -386,5 +389,19 @@ public class PictureController {
         //返回结果
         return ResultUtils.success(pictureVOPage, "后台已提交,任务执行中！");
     }
+    /**
+     * 以图搜图
+     */
+    @PostMapping("/search/picture")
+    public BaseResponse<List<ImageSearchResult>> searchPictureByPicture(@RequestBody SearchPictureByPictureRequest searchPictureByPictureRequest) {
+        ThrowUtils.throwIf(searchPictureByPictureRequest == null, ErrorCode.PARAMS_ERROR);
+        Long pictureId = searchPictureByPictureRequest.getPictureId();
+        ThrowUtils.throwIf(pictureId == null || pictureId <= 0, ErrorCode.PARAMS_ERROR);
+        Picture oldPicture = pictureService.getById(pictureId);
+        ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+        List<ImageSearchResult> resultList = ImageSearchApiFacade.searchImage(oldPicture.getUrl());
+        return ResultUtils.success(resultList);
+    }
+
 
 }

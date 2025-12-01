@@ -1,5 +1,6 @@
 package com.fyh.common;
 
+import com.fyh.api.imagesearch.model.ImageSearchResult;
 import com.fyh.exception.ErrorCode;
 import com.fyh.model.vo.SpaceLevel;
 
@@ -19,6 +20,9 @@ public class ResultUtils {
         return new BaseResponse<>(0, data, "ok");
     }
 
+    public static <T> BaseResponse<T> success(T data) {
+        return new BaseResponse<>(0, data);
+    }
     /**
      * 失败
      *
@@ -58,4 +62,9 @@ public class ResultUtils {
 //        return new BaseResponse<>(0, spaceLevelList, "ok");
         return ResultUtils.success(spaceLevelList, "ok");
     }
+
+
+//    public static BaseResponse<List<ImageSearchResult>> success(List<ImageSearchResult> resultList) {
+//        return ResultUtils.success(resultList);
+//    }
 }
