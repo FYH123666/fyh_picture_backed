@@ -126,6 +126,11 @@ public class Picture {
     private Date reviewTime;
 
 
+    /**
+     * 空间 id
+     */
+    private Long spaceId;
+
     @TableField(exist = false)//排除非数据库字段
     private static final long serialVersionUID = 1L;
 

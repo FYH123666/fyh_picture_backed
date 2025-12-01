@@ -2,10 +2,7 @@ package com.fyh.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fyh.model.dto.picture.PictureQueryRequest;
-import com.fyh.model.dto.picture.PictureReviewRequest;
-import com.fyh.model.dto.picture.PictureUploadByBatchRequest;
-import com.fyh.model.dto.picture.PictureUploadRequest;
+import com.fyh.model.dto.picture.*;
 import com.fyh.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fyh.model.entity.User;
@@ -104,7 +101,7 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      */
     @Async
-    public void asyncUploadPictureByBatch(PictureUploadByBatchRequest request, User loginUser);
+    void asyncUploadPictureByBatch(PictureUploadByBatchRequest request, User loginUser);
 
 
     /**
@@ -114,4 +111,36 @@ public interface PictureService extends IService<Picture> {
      */
     void clearPictureFile(Picture oldpicture);
 
+    /**
+     * 检查图片操作权限
+     *
+     * @param loginUser
+     * @param oldPicture
+     */
+    void checkPictureAuth(User loginUser, Picture oldPicture);
+
+/**
+     * 删除图片
+     *
+     * @param pictureId
+     * @param loginUser
+     */
+    void deletePicture(long pictureId,User loginUser);
+
+
+
+    /**
+     * 删除空间及关联图片
+     *
+     * @param pictureId
+     */
+    void deleteSpacePicture(long pictureId);
+
+    /**
+     * 图片编辑参数校验
+     *
+     * @param pictureEditRequest
+     * @param loginUser
+     */
+    void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 }

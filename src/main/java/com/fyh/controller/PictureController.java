@@ -12,11 +12,13 @@ import com.fyh.exception.ErrorCode;
 import com.fyh.exception.ThrowUtils;
 import com.fyh.model.dto.picture.*;
 import com.fyh.model.entity.Picture;
+import com.fyh.model.entity.Space;
 import com.fyh.model.entity.User;
 import com.fyh.model.enums.PictureReviewStatusEnum;
 import com.fyh.model.vo.PictureTagCategory;
 import com.fyh.model.vo.PictureVO;
 import com.fyh.service.PictureService;
+import com.fyh.service.SpaceService;
 import com.fyh.service.UserService;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -62,6 +64,8 @@ public class PictureController {
                     // 缓存 5 分钟移除
                     .expireAfterWrite(5L, TimeUnit.MINUTES)
                     .build();
+    @Autowired
+    private SpaceService spaceService;
 
     @PostMapping("/upload")
     @ApiOperation("上传图片")
@@ -86,20 +90,22 @@ public class PictureController {
         }
         User loginUser = userService.getLoginUser(request);
         long id = deleteRequest.getId();
-        // 判断是否存在照片
-        Picture picture = pictureService.getById(id);
-        ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "照片不存在");
-        // 仅本人或管理员可删除
-        if(!picture.getUserId().equals(loginUser.getId()) &&!userService.isAdmin(loginUser))
-        {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限");
-        }
-        //操作操作系统
-        boolean result = pictureService.removeById(id);
-        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
-        //清理图片资源
-        pictureService.clearPictureFile(picture);
-        return ResultUtils.success(true, "后台已提交,任务执行中！");
+//        // 判断是否存在照片
+//        Picture picture = pictureService.getById(id);
+//        ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "照片不存在");
+//        // 仅本人或管理员可删除
+//        if(!picture.getUserId().equals(loginUser.getId()) &&!userService.isAdmin(loginUser))
+//        {
+//            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限");
+//        }
+//        //操作操作系统
+//        boolean result = pictureService.removeById(id);
+//        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
+//        //清理图片资源
+//        pictureService.clearPictureFile(picture);
+
+        pictureService.deletePicture( id, loginUser);
+        return ResultUtils.success(true);
     }
 
     /**
@@ -167,6 +173,14 @@ public class PictureController {
         }
         Picture picture = pictureService.getById(id);
         ThrowUtils.throwIf(picture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
+
+        // 空间权限校验
+        Long spaceId = picture.getSpaceId();
+        if(spaceId!=null)
+        {
+            User loginUser = userService.getLoginUser(request);
+            pictureService.checkPictureAuth(loginUser, picture);
+        }
         return ResultUtils.success(PictureVO.objToVo(picture), "后台已提交,任务执行中！");
 
     }
@@ -206,9 +220,24 @@ public class PictureController {
         }
         int current = pictureQueryRequest.getCurrent();
         int pageSize = pictureQueryRequest.getPageSize();
-        //普通用户只能查看审核通过的图片
-        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        //限制爬虫
+        ThrowUtils.throwIf(pageSize>20,ErrorCode.PARAMS_ERROR,"单页请求数量过多");
 
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        //空间权限校验
+        if(spaceId==null) {
+            //普通用户只能查看审核通过的图片
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+            pictureQueryRequest.setNullSpaceId(true);
+        }else {
+            //有空间id时，校验权限,s私有空间
+            User loginUser = userService.getLoginUser(request);
+            Space space = spaceService.getById(spaceId);
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            if(!loginUser.getId().equals( space.getUserId())) {
+               throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限访问该空间图片");
+            }
+        }
         //操作数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize),
                 pictureService.getQueryWrapper(pictureQueryRequest));
@@ -224,34 +253,8 @@ public class PictureController {
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        //将实体类和DTO转化
-
-        Picture picture = new Picture();
-        BeanUtils.copyProperties(pictureEditRequest,picture);
-        picture.setTags(JSONUtil.toJsonStr(pictureEditRequest.getTags()));
-        //设置编辑时间
-
-        picture.setEditTime(new Date());
-        //数据校验
-        pictureService.ValidPicture(picture);
         User loginUser = userService.getLoginUser(request);
-        //判断是否存在
-        long id = pictureEditRequest.getId();
-        Picture oldPicture = pictureService.getById(id);
-        ThrowUtils.throwIf(oldPicture==null,ErrorCode.NOT_FOUND_ERROR,"图片不存在");
-        //仅本人或管理员可以编辑
-        if(!oldPicture.getUserId().equals(loginUser.getId())&&!userService.isAdmin(loginUser))
-        {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
-
-        //补充审核参数
-        pictureService.fileReviewParams(picture,loginUser);
-
-
-        //操作数据库
-        boolean result = pictureService.updateById(picture);
-        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
+        pictureService.editPicture(pictureEditRequest, loginUser);
         return ResultUtils.success(true, "后台已提交,任务执行中！");
     }
 
@@ -301,7 +304,6 @@ public class PictureController {
     /**
      * 批量上传图片(管理员）
      */
-
 //    @PostMapping("/upload/batch")
 //    @ApiOperation("批量上传图片(管理员）")
 //    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -379,11 +381,10 @@ public class PictureController {
 
         //更新Redis缓存,过期时间设置5分钟
         //缓存时间
-        valueOps.set(cacheKey,cacheValue,  5, TimeUnit.MINUTES);
+        valueOps.set(cacheKey,cacheValue,5, TimeUnit.MINUTES);
 
         //返回结果
         return ResultUtils.success(pictureVOPage, "后台已提交,任务执行中！");
-
     }
 
 }

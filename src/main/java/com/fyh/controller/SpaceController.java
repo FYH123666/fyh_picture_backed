@@ -16,6 +16,8 @@ import com.fyh.model.dto.space.SpaceQueryRequest;
 import com.fyh.model.dto.space.SpaceUpdateRequest;
 import com.fyh.model.entity.Space;
 import com.fyh.model.entity.User;
+import com.fyh.model.enums.SpaceLevelEnum;
+import com.fyh.model.vo.SpaceLevel;
 import com.fyh.model.vo.SpaceVO;
 import com.fyh.service.SpaceService;
 import com.fyh.service.UserService;
@@ -26,7 +28,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("/space")
 @RestController
@@ -90,17 +95,8 @@ public class SpaceController {
         }
         User loginUser = userService.getLoginUser(request);
         long id = deleteRequest.getId();
-        // 判断是否存在空间
-        Space space = spaceService.getById(id);
-        ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-        // 仅本人或管理员可删除
-        if(!space.getUserId().equals(loginUser.getId()) &&!userService.isAdmin(loginUser))
-        {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限");
-        }
-        //操作
-        boolean result = spaceService.removeById(id);
-        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
+        boolean result = spaceService.deleteSpaceAndPicturesById(id, loginUser);
+        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR,"删除失败");
         return ResultUtils.success(true);
     }
 
@@ -210,5 +206,18 @@ public class SpaceController {
         ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true, "后台已提交,任务执行中！");
     }
-    
+    @GetMapping("/list/level")
+    @ApiOperation("获取空间等级列表")
+    public BaseResponse<List<SpaceLevel>> listSpaceLevel() {
+        List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()) // 获取所有枚举
+                .map(spaceLevelEnum -> new SpaceLevel(
+                        spaceLevelEnum.getValue(),
+                        spaceLevelEnum.getText(),
+                        spaceLevelEnum.getMaxCount(),
+                        spaceLevelEnum.getMaxSize()))
+                .collect(Collectors.toList());
+        return ResultUtils.success(spaceLevelList);
+    }
+
+
 }

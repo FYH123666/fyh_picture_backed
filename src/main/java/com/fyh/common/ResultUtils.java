@@ -1,6 +1,9 @@
 package com.fyh.common;
 
 import com.fyh.exception.ErrorCode;
+import com.fyh.model.vo.SpaceLevel;
+
+import java.util.List;
 
 public class ResultUtils {
 
@@ -49,5 +52,10 @@ public class ResultUtils {
 
     public static BaseResponse<Boolean> success(boolean b) {
         return new BaseResponse<>(0, b, "ok");
+    }
+
+    public static BaseResponse<List<SpaceLevel>> success(List<SpaceLevel> spaceLevelList) {
+//        return new BaseResponse<>(0, spaceLevelList, "ok");
+        return ResultUtils.success(spaceLevelList, "ok");
     }
 }

@@ -67,4 +67,12 @@ public interface SpaceService extends IService<Space> {
      * @return
      */
     long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+    /**
+     * 根据id删除空间及其相关图片
+     *
+     * @param id
+     * @param loginUser
+     * @return
+     */
+    boolean deleteSpaceAndPicturesById(long id,User loginUser);
 }

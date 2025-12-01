@@ -19,10 +19,12 @@ import com.fyh.model.enums.SpaceLevelEnum;
 import com.fyh.model.vo.PictureVO;
 import com.fyh.model.vo.SpaceVO;
 import com.fyh.model.vo.UserVO;
+import com.fyh.service.PictureService;
 import com.fyh.service.SpaceService;
 import com.fyh.mapper.SpaceMapper;
 import com.fyh.service.UserService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -52,6 +54,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Resource
     private TransactionTemplate transactionTemplate;
+    @Autowired
+    private PictureService pictureService;
+
     /**
      * 校验空间数据
      *
@@ -300,6 +305,35 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                 }
             }
         }
+    }
+
+    public boolean deleteSpaceAndPicturesById(long id,User loginUser)
+    {
+        // 判断是否存在空间
+        Space space = this.getById(id);
+        ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+        // 仅本人或管理员可删除
+        if(!space.getUserId().equals(loginUser.getId()) &&!userService.isAdmin(loginUser))
+        {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限");
+        }
+
+        // 3. 获取该空间下的所有图片
+        List<Picture> pictureList = pictureService.lambdaQuery()
+                .eq(Picture::getSpaceId, id)
+                .list();
+
+
+        // 4. 删除所有图片
+        if (CollUtil.isNotEmpty(pictureList)) {
+            for (Picture picture : pictureList) {
+                pictureService.deleteSpacePicture(picture.getId());
+            }
+        }
+        //操作删除空间
+        boolean result = this.removeById(id);
+        ThrowUtils.throwIf(!result,ErrorCode.OPERATION_ERROR);
+        return true;
     }
 }
 
