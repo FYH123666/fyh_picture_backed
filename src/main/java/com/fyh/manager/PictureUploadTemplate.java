@@ -28,6 +28,7 @@ public abstract class PictureUploadTemplate {
     protected CosManager cosManager;
 
 
+
     @Resource
     protected CosClientConfig cosClientConfig;
 
@@ -72,7 +73,7 @@ public abstract class PictureUploadTemplate {
                     thumbnailCIObject = ciObjectList.get(1);
                 }
                 // 封装返回结果
-                return buildResult(originFilename,compressedCIObject,thumbnailCIObject);
+                return buildResult(originFilename,compressedCIObject,thumbnailCIObject, imageInfo);
             }
 
             // 封装返回原图结果
@@ -119,7 +120,9 @@ public abstract class PictureUploadTemplate {
      * @param compressedCIObject
      * @return
      */
-    private UploadPictureResult buildResult(String originFilename, CIObject compressedCIObject,CIObject thumbnailCIObject) {
+    private UploadPictureResult buildResult(String originFilename, CIObject compressedCIObject,
+                                            CIObject thumbnailCIObject,
+                                            ImageInfo imageInfo) {
         UploadPictureResult uploadPictureResult = new UploadPictureResult();
         int picWidth = compressedCIObject.getWidth();
         int picHeight = compressedCIObject.getHeight();
@@ -128,6 +131,8 @@ public abstract class PictureUploadTemplate {
         uploadPictureResult.setPicWidth(picWidth);
         uploadPictureResult.setPicHeight(picHeight);
         uploadPictureResult.setPicScale(picScale);
+        uploadPictureResult.setPicColor(imageInfo.getAve());
+
         uploadPictureResult.setPicFormat(compressedCIObject.getFormat());
         uploadPictureResult.setPicSize( compressedCIObject.getSize().longValue());
         //设置图片压缩后的地址
@@ -154,6 +159,8 @@ public abstract class PictureUploadTemplate {
         uploadPictureResult.setPicWidth(picWidth);
         uploadPictureResult.setPicHeight(picHeight);
         uploadPictureResult.setPicScale(picScale);
+        uploadPictureResult.setPicColor(imageInfo.getAve());
+
         uploadPictureResult.setPicFormat(imageInfo.getFormat());
         uploadPictureResult.setPicSize(FileUtil.size(file));
         uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
